@@ -17,17 +17,21 @@ In this notebook, we implement a simplified version of the Prompt Evolution Desi
 
 # -------------------------------------------------
 # Step 1: Setup Environment (code cell)
+
 import subprocess
 import sys
 
-subprocess.check_call([sys.executable, "-m", "pip", "install", "diffusers", "transformers", "matplotlib", "numpy", "scipy", "torch", "torchvision"])
+subprocess.check_call(
+    [sys.executable, "-m", "pip", "install", "diffusers", "transformers", "matplotlib", "numpy", "scipy", "torch", "torchvision"]
+    )
 
 # -------------------------------------------------
 # Step 2: Text-to-Image Generation using Stable Diffusion
-from diffusers import StableDiffusionPipeline
 import torch
+from diffusers import StableDiffusionPipeline
+from transformers import CLIPTextModel, CLIPTokenizer
 
-pipe = StableDiffusionPipeline.from_pretrained("CompVis/stable-diffusion-v1-4")
+pipe = StableDiffusionPipeline.from_pretrained("runwayml/stable-diffusion-v1-5")
 device = "cuda" if torch.cuda.is_available() else "cpu"
 pipe.to(device)
 
@@ -97,7 +101,7 @@ def penalize_unrealistic(image):
     input_tensor = preprocess(image).unsqueeze(0)
     with torch.no_grad():
         output = model(input_tensor)
-    penalty = output.softmax(1)[0][random.randint(0, 999)].item()  # Placeholder
+    penalty = 1 - output.softmax(1)[0].max().item()  # Use the highest confidence score as a penalty
     return penalty
 
 # -------------------------------------------------
